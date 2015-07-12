@@ -158,7 +158,7 @@ public class RouteHL7 extends AbstractProcessor {
 
         @SuppressWarnings("resource")
         final HapiContext hapiContext = new DefaultHapiContext();
-        hapiContext.setValidationContext(ValidationContextFactory.noValidation());
+        hapiContext.setValidationContext(ValidationContextFactory.<ca.uhn.hl7v2.validation.ValidationContext>noValidation());
 
         final PipeParser parser = hapiContext.getPipeParser();
         final String hl7Text = new String(buffer, charset);

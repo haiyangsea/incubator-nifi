@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.nifi.datamodel.DataModel;
+import org.apache.nifi.datamodel.Model;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.FlowFileFilter;
 import org.apache.nifi.processor.ProcessSession;
@@ -237,6 +239,20 @@ public class BatchingSessionFactory implements ProcessSessionFactory {
             return session.getProvenanceReporter();
         }
 
+        @Override
+        public void setModelData(Model data) {
+            session.setModelData(data);
+        }
+
+        @Override
+        public DataModel getDataModel() {
+            return session.getDataModel();
+        }
+
+        @Override
+        public List<DataModel> getDataModels() {
+            return session.getDataModels();
+        }
     }
 
 }

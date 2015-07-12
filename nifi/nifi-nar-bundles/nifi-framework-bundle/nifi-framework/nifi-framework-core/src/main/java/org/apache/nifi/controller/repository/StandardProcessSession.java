@@ -52,6 +52,8 @@ import org.apache.nifi.controller.repository.io.FlowFileAccessInputStream;
 import org.apache.nifi.controller.repository.io.FlowFileAccessOutputStream;
 import org.apache.nifi.controller.repository.io.LimitedInputStream;
 import org.apache.nifi.controller.repository.io.LongHolder;
+import org.apache.nifi.datamodel.DataModel;
+import org.apache.nifi.datamodel.Model;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.stream.io.BufferedOutputStream;
@@ -2612,6 +2614,34 @@ public final class StandardProcessSession implements ProcessSession, ProvenanceE
             }
 
         return result;
+    }
+
+    @Override
+    public void setModelData(Model data) {
+        ((ProcessorNode)this.context.getConnectable()).setModelData(data);
+    }
+
+    @Override
+    public DataModel getDataModel() {
+        List<DataModel> dataModels = getDataModels();
+        return dataModels.isEmpty() ? null : dataModels.get(0);
+
+    }
+
+    @Override
+    public List<DataModel> getDataModels() {
+        List<Connection> connections = this.context.getConnectable().getIncomingConnections();
+        List<DataModel> dataModels = new ArrayList<DataModel>(connections.size());
+
+        DataModel dataModel;
+        for (Connection connection : connections) {
+            dataModel = connection.getDataModel();
+            if (dataModel != null) {
+                dataModels.add(dataModel);
+            }
+        }
+
+        return dataModels;
     }
 
     @Override

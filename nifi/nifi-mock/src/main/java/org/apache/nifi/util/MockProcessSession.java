@@ -40,6 +40,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+import org.apache.nifi.datamodel.DataModel;
+import org.apache.nifi.datamodel.Model;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.FlowFileFilter;
@@ -1022,5 +1024,20 @@ public class MockProcessSession implements ProcessSession {
         }
 
         return true;
+    }
+
+    @Override
+    public void setModelData(Model data) {
+
+    }
+
+    @Override
+    public DataModel getDataModel() {
+        return null;
+    }
+
+    @Override
+    public List<DataModel> getDataModels() {
+        return null;
     }
 }

@@ -38,6 +38,7 @@ import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Port;
 import org.apache.nifi.connectable.Position;
+import org.apache.nifi.datamodel.DataModel;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
@@ -604,5 +605,27 @@ public abstract class AbstractPort implements Port {
         if (threadCount > 0) {
             throw new IllegalStateException(this + " has " + threadCount + " threads still active");
         }
+    }
+
+    @Override
+    public DataModel getDataModel() {
+        List<DataModel> dataModels = getDataModels();
+        return dataModels.isEmpty() ? null : dataModels.get(0);
+    }
+
+    @Override
+    public List<DataModel> getDataModels() {
+        List<Connection> connections = getIncomingConnections();
+        List<DataModel> dataModels = new ArrayList<>(connections.size());
+
+        DataModel dataModel = null;
+        for (Connection connection : connections) {
+            dataModel = connection.getDataModel();
+            if (dataModel != null) {
+                dataModels.add(dataModel);
+            }
+        }
+
+        return Collections.unmodifiableList(dataModels);
     }
 }

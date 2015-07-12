@@ -38,6 +38,7 @@ import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Funnel;
 import org.apache.nifi.connectable.Position;
+import org.apache.nifi.datamodel.DataModel;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.ProcessContext;
@@ -534,5 +535,29 @@ public class StandardFunnel implements Funnel {
     @Override
     public SchedulingStrategy getSchedulingStrategy() {
         return SchedulingStrategy.TIMER_DRIVEN;
+    }
+
+    @Override
+    public DataModel getDataModel() {
+        List<DataModel> dataModels = getDataModels();
+        return dataModels.isEmpty() ? null : dataModels.get(0);
+    }
+
+    @Override
+    public List<DataModel> getDataModels() {
+        List<Connection> connections = getIncomingConnections();
+        ArrayList<DataModel> dataModels = new ArrayList<>(connections.size());
+
+        DataModel dataModel = null;
+        for (Connection connection : connections)
+        {
+            dataModel = connection.getDataModel();
+            if (dataModel != null)
+            {
+                dataModels.add(dataModel);
+            }
+        }
+
+        return dataModels;
     }
 }

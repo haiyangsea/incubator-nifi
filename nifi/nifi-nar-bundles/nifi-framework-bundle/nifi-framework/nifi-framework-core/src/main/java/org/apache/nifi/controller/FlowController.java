@@ -102,11 +102,7 @@ import org.apache.nifi.controller.repository.claim.ContentClaimManager;
 import org.apache.nifi.controller.repository.claim.ContentDirection;
 import org.apache.nifi.controller.repository.claim.StandardContentClaimManager;
 import org.apache.nifi.controller.repository.io.LimitedInputStream;
-import org.apache.nifi.controller.scheduling.EventDrivenSchedulingAgent;
-import org.apache.nifi.controller.scheduling.ProcessContextFactory;
-import org.apache.nifi.controller.scheduling.QuartzSchedulingAgent;
-import org.apache.nifi.controller.scheduling.StandardProcessScheduler;
-import org.apache.nifi.controller.scheduling.TimerDrivenSchedulingAgent;
+import org.apache.nifi.controller.scheduling.*;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceProvider;
 import org.apache.nifi.controller.service.StandardConfigurationContext;
@@ -202,6 +198,8 @@ import com.sun.jersey.api.client.ClientHandlerException;
 
 public class FlowController implements EventAccess, ControllerServiceProvider, ReportingTaskProvider, Heartbeater, QueueProvider {
 
+    public static final String DEFAULT_ROOT_GROUP_NAME_CONF = "nifi.default.group.name";
+
     // default repository implementations
     public static final String DEFAULT_FLOWFILE_REPO_IMPLEMENTATION = "org.apache.nifi.controller.repository.WriteAheadFlowFileRepository";
     public static final String DEFAULT_CONTENT_REPO_IMPLEMENTATION = "org.apache.nifi.controller.repository.FileSystemRepository";
@@ -221,6 +219,7 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
     private final AtomicInteger maxEventDrivenThreads;
     private final AtomicReference<FlowEngine> timerDrivenEngineRef;
     private final AtomicReference<FlowEngine> eventDrivenEngineRef;
+    private final AtomicReference<FlowEngine> userDrivenEngineRef;
 
     private final ContentRepository contentRepository;
     private final FlowFileRepository flowFileRepository;
@@ -388,6 +387,7 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
 
         timerDrivenEngineRef = new AtomicReference<>(new FlowEngine(maxTimerDrivenThreads.get(), "Timer-Driven Process"));
         eventDrivenEngineRef = new AtomicReference<>(new FlowEngine(maxEventDrivenThreads.get(), "Event-Driven Process"));
+        userDrivenEngineRef = new AtomicReference<>(new FlowEngine(maxEventDrivenThreads.get(), "User-Driven Process"));
 
         final FlowFileRepository flowFileRepo = createFlowFileRepository(properties, contentClaimManager);
         flowFileRepository = flowFileRepo;
@@ -416,9 +416,13 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
 
         final QuartzSchedulingAgent quartzSchedulingAgent = new QuartzSchedulingAgent(this, timerDrivenEngineRef.get(), contextFactory, encryptor);
         final TimerDrivenSchedulingAgent timerDrivenAgent = new TimerDrivenSchedulingAgent(this, timerDrivenEngineRef.get(), contextFactory, encryptor);
+        final UserDrivenSchedulingAgent userDrivenAgent = new UserDrivenSchedulingAgent(this, userDrivenEngineRef.get(), contextFactory, encryptor);
+
         processScheduler.setSchedulingAgent(SchedulingStrategy.TIMER_DRIVEN, timerDrivenAgent);
         processScheduler.setSchedulingAgent(SchedulingStrategy.PRIMARY_NODE_ONLY, timerDrivenAgent);
-        processScheduler.setSchedulingAgent(SchedulingStrategy.CRON_DRIVEN, quartzSchedulingAgent);
+        processScheduler.setSchedulingAgent(SchedulingStrategy.CRON_DRIVEN, userDrivenAgent);
+        processScheduler.setSchedulingAgent(SchedulingStrategy.USER_DRIVEN, userDrivenAgent);
+
         processScheduler.scheduleFrameworkTask(new ExpireFlowFiles(this, contextFactory), "Expire FlowFiles", 30L, 30L, TimeUnit.SECONDS);
 
         startConnectablesAfterInitialization = new ArrayList<>();
@@ -1039,10 +1043,12 @@ public class FlowController implements EventAccess, ControllerServiceProvider, R
             if (kill) {
                 this.timerDrivenEngineRef.get().shutdownNow();
                 this.eventDrivenEngineRef.get().shutdownNow();
+                this.userDrivenEngineRef.get().shutdownNow();
                 LOG.info("Initiated immediate shutdown of flow controller...");
             } else {
                 this.timerDrivenEngineRef.get().shutdown();
                 this.eventDrivenEngineRef.get().shutdown();
+                this.userDrivenEngineRef.get().shutdownNow();
                 LOG.info("Initiated graceful shutdown of flow controller...waiting up to " + gracefulShutdownSeconds + " seconds");
             }
 

@@ -55,6 +55,9 @@ public enum SchedulingStrategy {
      * Components support Timer-Driven mode.
      */
     TIMER_DRIVEN(1, "0 sec"),
+
+    USER_DRIVEN(1, null),
+
     /**
      * Indicates that the component will be scheduled via timer only on the
      * Primary Node. If the instance is not part of a cluster and this

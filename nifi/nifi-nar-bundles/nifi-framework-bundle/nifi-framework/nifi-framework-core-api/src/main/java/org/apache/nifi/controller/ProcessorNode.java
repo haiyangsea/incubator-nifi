@@ -23,12 +23,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.nifi.connectable.Connectable;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceProvider;
+import org.apache.nifi.datamodel.ModifiableDataModelExtension;
 import org.apache.nifi.logging.LogLevel;
 import org.apache.nifi.processor.Processor;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.scheduling.SchedulingStrategy;
 
-public abstract class ProcessorNode extends AbstractConfiguredComponent implements Connectable {
+public abstract class ProcessorNode extends AbstractConfiguredComponent implements Connectable, ModifiableDataModelExtension {
 
     public ProcessorNode(final Processor processor, final String id,
             final ValidationContextFactory validationContextFactory, final ControllerServiceProvider serviceProvider) {

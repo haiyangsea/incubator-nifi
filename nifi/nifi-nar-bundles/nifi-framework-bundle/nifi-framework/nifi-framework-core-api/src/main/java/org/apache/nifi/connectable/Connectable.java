@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.controller.Triggerable;
+import org.apache.nifi.datamodel.DataModelExtension;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
@@ -31,7 +32,7 @@ import org.apache.nifi.scheduling.SchedulingStrategy;
 /**
  * Represents a connectable component to which or from which data can flow.
  */
-public interface Connectable extends Triggerable {
+public interface Connectable extends Triggerable, DataModelExtension {
 
     /**
      * @return the unique identifier for this <code>Connectable</code>

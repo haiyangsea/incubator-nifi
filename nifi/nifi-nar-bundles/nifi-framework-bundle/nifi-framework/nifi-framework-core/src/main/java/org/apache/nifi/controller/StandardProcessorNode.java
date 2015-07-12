@@ -49,8 +49,12 @@ import org.apache.nifi.connectable.Connectable;
 import org.apache.nifi.connectable.ConnectableType;
 import org.apache.nifi.connectable.Connection;
 import org.apache.nifi.connectable.Position;
+import org.apache.nifi.controller.repository.StandardDataModel;
+import org.apache.nifi.controller.repository.UnmodifiableModelFactory;
 import org.apache.nifi.controller.service.ControllerServiceNode;
 import org.apache.nifi.controller.service.ControllerServiceProvider;
+import org.apache.nifi.datamodel.DataModel;
+import org.apache.nifi.datamodel.Model;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.logging.LogLevel;
 import org.apache.nifi.logging.LogRepositoryFactory;
@@ -112,6 +116,8 @@ public class StandardProcessorNode extends ProcessorNode implements Connectable 
     private final ProcessScheduler processScheduler;
     private long runNanos = 0L;
 
+    private final AtomicReference<DataModel> dataModel;
+
     private SchedulingStrategy schedulingStrategy;  // guarded by read/write lock
 
     @SuppressWarnings("deprecation")
@@ -145,6 +151,7 @@ public class StandardProcessorNode extends ProcessorNode implements Connectable 
         annotationData = new AtomicReference<>();
         isolated = new AtomicBoolean(false);
         penalizationPeriod = new AtomicReference<>(DEFAULT_PENALIZATION_PERIOD);
+        dataModel = new AtomicReference<>();
 
         final Class<?> procClass = processor.getClass();
         triggerWhenEmpty = procClass.isAnnotationPresent(TriggerWhenEmpty.class) || procClass.isAnnotationPresent(org.apache.nifi.processor.annotation.TriggerWhenEmpty.class);
@@ -860,6 +867,34 @@ public class StandardProcessorNode extends ProcessorNode implements Connectable 
     @Override
     public Processor getProcessor() {
         return this.processor;
+    }
+
+    @Override
+    public void setModelData(Model data) {
+        StandardDataModel model = new StandardDataModel.Builder()
+                .setModel(UnmodifiableModelFactory.getUnmodifiableModel(data)).build();
+        this.dataModel.set(model);
+    }
+
+    @Override
+    public DataModel getDataModel() {
+        List<DataModel> dataModels = getDataModels();
+        return dataModels.isEmpty() ? null : dataModels.get(0);
+    }
+
+    @Override
+    public List<DataModel> getDataModels() {
+        List<DataModel> dataModels = new ArrayList<DataModel>(1);
+        readLock.lock();
+        try {
+            if (this.dataModel.get() != null) {
+                dataModels.add(this.dataModel.get());
+            }
+        } finally {
+            readLock.unlock();
+        }
+
+        return dataModels;
     }
 
     /**

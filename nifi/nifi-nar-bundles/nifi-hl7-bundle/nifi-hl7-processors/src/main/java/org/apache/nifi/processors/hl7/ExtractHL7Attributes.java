@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.uhn.hl7v2.validation.ValidationContext;
 import org.apache.nifi.annotation.behavior.SideEffectFree;
 import org.apache.nifi.annotation.behavior.SupportsBatching;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
@@ -117,7 +118,7 @@ public class ExtractHL7Attributes extends AbstractProcessor {
 
         @SuppressWarnings("resource")
         final HapiContext hapiContext = new DefaultHapiContext();
-        hapiContext.setValidationContext(ValidationContextFactory.noValidation());
+        hapiContext.setValidationContext(ValidationContextFactory.<ValidationContext>noValidation());
 
         final PipeParser parser = hapiContext.getPipeParser();
         final String hl7Text = new String(buffer, charset);

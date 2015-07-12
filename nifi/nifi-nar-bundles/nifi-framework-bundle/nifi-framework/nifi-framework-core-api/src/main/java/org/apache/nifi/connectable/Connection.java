@@ -22,11 +22,12 @@ import java.util.Set;
 
 import org.apache.nifi.controller.FlowFileQueue;
 import org.apache.nifi.controller.repository.FlowFileRecord;
+import org.apache.nifi.datamodel.DataModelExtension;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.FlowFileFilter;
 import org.apache.nifi.processor.Relationship;
 
-public interface Connection {
+public interface Connection extends DataModelExtension {
 
     void enqueue(FlowFileRecord flowFile);
 

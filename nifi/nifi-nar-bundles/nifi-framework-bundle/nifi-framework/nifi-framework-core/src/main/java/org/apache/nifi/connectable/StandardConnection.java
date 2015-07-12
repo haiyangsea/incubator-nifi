@@ -30,6 +30,7 @@ import org.apache.nifi.controller.FlowFileQueue;
 import org.apache.nifi.controller.ProcessScheduler;
 import org.apache.nifi.controller.StandardFlowFileQueue;
 import org.apache.nifi.controller.repository.FlowFileRecord;
+import org.apache.nifi.datamodel.DataModel;
 import org.apache.nifi.groups.ProcessGroup;
 import org.apache.nifi.processor.FlowFileFilter;
 import org.apache.nifi.processor.Relationship;
@@ -345,5 +346,15 @@ public final class StandardConnection implements Connection {
                 throw new IllegalStateException("Source of Connection (" + source + ") is running");
             }
         }
+    }
+
+    @Override
+    public DataModel getDataModel() {
+        return getSource().getDataModel();
+    }
+
+    @Override
+    public List<DataModel> getDataModels() {
+        return getSource().getDataModels();
     }
 }

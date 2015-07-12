@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.nifi.datamodel.ModifiableDataModelExtension;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.exception.FlowFileAccessException;
 import org.apache.nifi.processor.exception.FlowFileHandlingException;
@@ -61,7 +62,7 @@ import org.apache.nifi.provenance.ProvenanceReporter;
  * commit or rollback, the session can be used again.</p>
  *
  */
-public interface ProcessSession {
+public interface ProcessSession extends ModifiableDataModelExtension {
 
     /**
      * <p>
